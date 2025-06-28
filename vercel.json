@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "app/api/ai-design-visual/route.ts": {
-      "maxDuration": 60
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
