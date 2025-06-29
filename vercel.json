@@ -1,11 +1,19 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "functions": {
+    "app/api/ai-design-visual/route.ts": {
+      "maxDuration": 60
+    }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://urbanwoodspace.com"
         },
         {
           "key": "Access-Control-Allow-Methods",
