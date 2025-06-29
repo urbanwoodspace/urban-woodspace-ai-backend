@@ -176,7 +176,8 @@ Please be specific and detailed in your analysis, considering Calgary's climate 
       const stats = { imagesGenerated: 0, imagesFailed: 0 }
 
       // Generate 3D renderings for each design
-      for (const [index, designVariation] of designVariations.entries()) {
+      for (let index = 0; index < designVariations.length; index++) {
+        const designVariation = designVariations[index]
         try {
           console.log(`🖼️ Generating ${designVariation.name} design (${index + 1}/${designVariations.length})...`)
 
