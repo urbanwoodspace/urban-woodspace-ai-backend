@@ -191,6 +191,11 @@ Please be specific and detailed in your analysis, considering Calgary's climate 
             n: 1,
           })
 
+          // Add proper null checks
+          if (!imageResponse || !imageResponse.data || imageResponse.data.length === 0) {
+            throw new Error("No image data returned from OpenAI")
+          }
+
           const generatedImageUrl = imageResponse.data[0]?.url
 
           if (generatedImageUrl) {
@@ -259,12 +264,6 @@ Please be specific and detailed in your analysis, considering Calgary's climate 
 // Rate limiting function
 async function checkRateLimit(request: NextRequest): Promise<{ allowed: boolean; remaining?: number }> {
   // Simple in-memory rate limiting (in production, use Redis or similar)
-  const ip = request.headers.get("x-forwarded-for") || "unknown"
-  const now = Date.now()
-  const windowMs = 60 * 60 * 1000 // 1 hour
-  const maxRequests = 10 // 10 requests per hour per IP
-
-  // This is a simplified rate limiter - in production, use a proper solution
   return { allowed: true }
 }
 
@@ -286,12 +285,6 @@ async function logLead(contact: any, preferences: any) {
   }
 
   console.log("📝 New lead captured:", leadData)
-
-  // In production, you might want to:
-  // - Send to CRM
-  // - Email notification
-  // - Save to database
-  // - Send to Zapier webhook
 }
 
 // Helper functions for analysis parsing
@@ -388,7 +381,6 @@ function extractOptimization(text: string): string[] {
 function createDesignVariations(preferences: any) {
   const baseStyle = preferences.kitchenStyle
   const colorPref = preferences.colorPreference
-  const budget = preferences.budgetRange
   const storage = preferences.storageNeeds
   const cooking = preferences.cookingHabits
 
@@ -444,7 +436,7 @@ function capitalizeFirst(str: string): string {
 }
 
 function getCabinetStyle(style: string, tier: string): string {
-  const styles = {
+  const styles: Record<string, Record<string, string>> = {
     contemporary: {
       primary: "Flat-panel doors with sleek brushed hardware",
       enhanced: "Handleless flat-panel with integrated pulls and soft-close",
@@ -482,13 +474,11 @@ function getCabinetStyle(style: string, tier: string): string {
     },
   }
 
-  return (
-    styles[style as keyof typeof styles]?.[tier as keyof (typeof styles)[keyof typeof styles]] || "Custom cabinet style"
-  )
+  return styles[style]?.[tier] || "Custom cabinet style"
 }
 
 function getColorPalette(colorPref: string, tier: string): string {
-  const palettes = {
+  const palettes: Record<string, Record<string, string>> = {
     "light-neutral": {
       primary: "Crisp whites with warm gray accents and quartz counters",
       enhanced: "Premium whites with marble-inspired veining and gold accents",
@@ -516,14 +506,11 @@ function getColorPalette(colorPref: string, tier: string): string {
     },
   }
 
-  return (
-    palettes[colorPref as keyof typeof palettes]?.[tier as keyof (typeof palettes)[keyof typeof palettes]] ||
-    "Custom color palette designed for your space"
-  )
+  return palettes[colorPref]?.[tier] || "Custom color palette designed for your space"
 }
 
 function getKeyFeatures(style: string, storage: string, cooking: string, tier: string): string[] {
-  const baseFeatures = {
+  const baseFeatures: Record<string, string[]> = {
     primary: [
       "Soft-close doors and drawers",
       "Under-cabinet LED lighting",
@@ -551,7 +538,7 @@ function getKeyFeatures(style: string, storage: string, cooking: string, tier: s
     ],
   }
 
-  return baseFeatures[tier as keyof typeof baseFeatures] || baseFeatures.primary
+  return baseFeatures[tier] || baseFeatures.primary
 }
 
 function getLayoutOptimization(cooking: string, storage: string, tier = "primary"): string[] {
@@ -583,7 +570,7 @@ function getLayoutOptimization(cooking: string, storage: string, tier = "primary
 }
 
 function getStorageFeatures(storage: string, tier: string): string[] {
-  const features = {
+  const features: Record<string, string[]> = {
     "maximum-storage": [
       "Floor-to-ceiling cabinets with crown molding",
       "Deep drawer systems with full extension slides",
@@ -616,7 +603,7 @@ function getStorageFeatures(storage: string, tier: string): string[] {
     ],
   }
 
-  const baseFeatures = features[storage as keyof typeof features] || [
+  const baseFeatures = features[storage] || [
     "Custom storage solutions tailored to your needs",
     "Organized cabinet interiors with adjustable shelves",
     "Efficient space utilization for Calgary homes",
@@ -631,7 +618,7 @@ function getStorageFeatures(storage: string, tier: string): string[] {
 }
 
 function calculateCost(budgetRange: string, complexity: string): string {
-  const budgetMultipliers = {
+  const budgetMultipliers: Record<string, { min: number; max: number }> = {
     "25k-40k": { min: 25000, max: 40000 },
     "40k-60k": { min: 40000, max: 60000 },
     "60k-80k": { min: 60000, max: 80000 },
@@ -639,14 +626,14 @@ function calculateCost(budgetRange: string, complexity: string): string {
     "100k-plus": { min: 100000, max: 150000 },
   }
 
-  const complexityMultipliers = {
+  const complexityMultipliers: Record<string, number> = {
     standard: 0.85,
     high: 1.0,
     premium: 1.25,
   }
 
-  const budget = budgetMultipliers[budgetRange as keyof typeof budgetMultipliers] || { min: 35000, max: 50000 }
-  const multiplier = complexityMultipliers[complexity as keyof typeof complexityMultipliers] || 1.0
+  const budget = budgetMultipliers[budgetRange] || { min: 35000, max: 50000 }
+  const multiplier = complexityMultipliers[complexity] || 1.0
 
   const minCost = Math.round(budget.min * multiplier)
   const maxCost = Math.round(budget.max * multiplier)
